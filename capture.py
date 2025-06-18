@@ -37,8 +37,8 @@ mensagem = ""
 mensagem_cor = (255, 255, 255)
 
 # Acesso do Zilliz Cloud:
-zilliz_uri = "https://in03-729fdb949596dbe.serverless.gcp-us-west1.cloud.zilliz.com"
-zilliz_token = "de6bc4285f95703df6b754e1440425ce33b76c28de022528b543936d7115dc36145935a8a7cabfada69a2d3ff0f37de5179a6401"
+zilliz_uri = os.environ["ZILLIZ_URI"]
+zilliz_token = os.environ["ZILLIZ_TOKEN"]
 
 connections.connect(
     alias="default",
@@ -50,11 +50,6 @@ print("✅ Conectado ao Zilliz Cloud!")
 
 # Definição do esquema da coleção
 collection_name = "student_embeddings"
-# # Drop a collection if exists
-# if collection_name in [c.name for c in Collection.list()]:
-#     collection = Collection(name=collection_name)
-#     collection.drop()
-#     print(f"❌ Collection {collection_name} removida.")
 
 # Crie a nova com a dimensão correta
 fields = [
@@ -72,51 +67,6 @@ try:
 except Exception:
     collection = Collection(name=collection_name, schema=schema)
     print("Collection criada.")
-
-
-
-# class FalaThreadSegura:
-#     def __init__(self):
-#         self.engine = pyttsx3.init()
-#         self.engine.setProperty('rate', 120)
-#         self.engine.setProperty('voice', self._get_voice('brazil'))
-#         self.fila = queue.Queue()
-#         self.thread = threading.Thread(target=self._executor, daemon=True)
-#         self.thread.start()
-
-#     def _get_voice(self, language_keyword):
-#         for voice in self.engine.getProperty('voices'):
-#             if language_keyword.lower() in voice.name.lower() or language_keyword.lower() in voice.id.lower():
-#                 return voice.id
-#         return self.engine.getProperty('voice')
-
-#     def _executor(self):
-#         while True:
-#             texto = self.fila.get()
-#             if texto is None:
-#                 break
-#             self.engine.say(texto)
-#             self.engine.runAndWait()
-
-#     def falar(self, texto):
-#         self.fila.put(texto)
-
-#     def parar(self):
-#         self.fila.put(None)
-#         self.thread.join()
-
-# # ========== Uso ==========
-# fala = FalaThreadSegura()
-
-# def falar(texto):
-#     fala.falar(texto)
-
-# def tocar_audio(file_path):
-#     pygame.mixer.init()
-#     pygame.mixer.music.load(file_path)
-#     pygame.mixer.music.play()
-#     while pygame.mixer.music.get_busy():
-#         pygame.time.Clock().tick(10)   
 
 def salvar_foto_em_thread(img, path, index):
     cv2.imwrite(path, img)
