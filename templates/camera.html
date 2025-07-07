@@ -255,13 +255,14 @@ function captureAndSend(position, box) {
   return true;
 }
 
+let currentFacingMode = 'environment'; // começa com a traseira
 
 async function setupCamera() {
   const stream = await navigator.mediaDevices.getUserMedia({
     video: { 
         width: { ideal: 1280 }, 
         height: { ideal: 720 }, 
-        facingMode: { currentFacingMode }
+        facingMode: currentFacingMode 
     },
     audio: false
   });
