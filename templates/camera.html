@@ -133,6 +133,7 @@
     </div>
 
     <div id="controls">
+      <button id="switchCamera" class="btn btn-gray">Trocar Câmera</button>
       <button id="retomar-btn" class="btn btn-gray">Retomar Fotos</button>
       <button id="finalizar-btn" class="btn btn-green">Finalizar</button>
   </div>
@@ -150,6 +151,7 @@ const overlay = document.getElementById('overlay');
 const ctxOverlay = overlay.getContext('2d');
 
 let model;
+let currentFacingMode = 'environment'; // começa com a traseira
 
 // Adicione no topo
 let positionTimers = { 'Frente': 0, 'Esquerda': 0, 'Direita': 0 };
@@ -160,7 +162,7 @@ let lastCaptured = { 'Frente': false, 'Esquerda': false, 'Direita': false };
 const studentId = "{{ student_id }}";
 const studentName = "{{ student_name }}";
 
-function isImageBlurry(imageMat, threshold = 80) {
+function isImageBlurry(imageMat, threshold = 60) {
   const gray = new cv.Mat();
   cv.cvtColor(imageMat, gray, cv.COLOR_RGBA2GRAY, 0);
   const laplacian = new cv.Mat();
@@ -184,6 +186,7 @@ function isImageTooDark(imageMat, threshold = 50) {
 
 function removeEmbeddings() {
   fetch('https://captura.cantinasemfila.com.br/update_embeddings', {
+  // fetch('http://127.0.0.1:5000/update_embeddings', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -229,6 +232,7 @@ function captureAndSend(position, box) {
   const imageData = faceCanvas.toDataURL('image/jpeg');
 
   fetch('https://captura.cantinasemfila.com.br/process_frame', {
+  // fetch('http://127.0.0.1:5000/process_frame', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -257,7 +261,7 @@ async function setupCamera() {
     video: { 
         width: { ideal: 1280 }, 
         height: { ideal: 720 }, 
-        facingMode: "user" 
+        facingMode: { currentFacingMode }
     },
     audio: false
   });
@@ -267,11 +271,26 @@ async function setupCamera() {
   });
 }
 
-async function main() {
-  ret = confirm("Esse processo substituirá os rostos gravados anteriormente. Deseja realmente iniciar a captura?");
-  if (ret === false) {
-    return;
+document.getElementById('switchCamera').addEventListener('click', () => {
+  // Alterna entre 'user' (frontal) e 'environment' (traseira)
+  currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+
+  // Parar stream atual
+  const video = document.getElementById('video');
+  const stream = video.srcObject;
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
   }
+
+  // Iniciar com nova câmera
+  main();
+});
+
+async function main() {
+  // ret = confirm("Esse processo substituirá os rostos gravados anteriormente. Deseja realmente iniciar a captura?");
+  // if (ret === false) {
+  //   return;
+  // }
   document.getElementById('startBtn').style.display = 'none';
   await setupCamera();
   video.play();
@@ -350,21 +369,21 @@ async function processFrame() {
       let boxColor = 'red';
       let position = '';
 
-      if (offset < -45 && offset > -70) {
+      if (offset < -35 && offset > -60) {
         boxColor = 'orange'; // Olhando esquerda
         position = 'Esquerda';
         stepId = 'step-left';
         thumbId = 'thumb-left';
-      } else if (offset > 15 && offset < 40) {
-        boxColor = 'blue'; // Olhando direita
-        position = 'Direita';
-        stepId = 'step-right';
-        thumbId = 'thumb-right';
-      } else if (offset < 10 && offset > -40) {
+      } else if (offset < 30 && offset > -30) {
         boxColor = 'lime'; // Centro
         position = 'Frente';
         stepId = 'step-front';
         thumbId = 'thumb-front';
+      } else if (offset > 35 && offset < 60) {
+        boxColor = 'blue'; // Olhando direita
+        position = 'Direita';
+        stepId = 'step-right';
+        thumbId = 'thumb-right';
       }
 
       ctxOverlay.strokeStyle = boxColor;

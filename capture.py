@@ -219,8 +219,8 @@ def index():
 def camera():
     # student_name = request.args.get('student_name')
     # student_id = request.args.get('student_id')
-    student_id = request.form.get('student_id')
-    student_name = request.form.get('student_name')
+    student_id = request.form.get('student_id')       # POST
+    student_name = request.form.get('student_name')   # POST
 
     if not student_name or not student_id:
         return redirect(url_for('index'))
