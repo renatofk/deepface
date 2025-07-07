@@ -20,3 +20,4 @@ venv
 photobase/
 photobase_bkp/
 history/
+.env
