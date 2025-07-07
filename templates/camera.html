@@ -157,6 +157,7 @@
 
     let model;
     let currentFacingMode = 'environment'; // começa com a traseira
+    let animationFrameId = null;
 
     // Adicione no topo
     let positionTimers = { 'Frente': 0, 'Esquerda': 0, 'Direita': 0 };
@@ -237,7 +238,7 @@
       const imageData = faceCanvas.toDataURL('image/jpeg');
 
       fetch('https://captura.cantinasemfila.com.br/process_frame', {
-        // fetch('http://127.0.0.1:5000/process_frame', {
+      // fetch('http://127.0.0.1:5000/process_frame', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -279,6 +280,12 @@
       // Alterna entre 'user' (frontal) e 'environment' (traseira)
       currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
 
+      // Cancela a detecção anterior
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+
       // Parar stream atual
       const video = document.getElementById('video');
       const stream = video.srcObject;
@@ -317,12 +324,16 @@
       const cropX = (vidW - cropSize) / 2;
       const cropY = (vidH - cropSize) / 2;
 
-
-      ctx.save();
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-      ctx.drawImage(video, cropX, cropY, cropSize, cropSize, 0, 0, canvas.width, canvas.height);
-      ctx.restore();
+      if (currentFacingMode === 'user') {
+      // Espelha horizontalmente
+        ctx.save();
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, cropX, cropY, cropSize, cropSize, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+      } else {
+        ctx.drawImage(video, cropX, cropY, cropSize, cropSize, 0, 0, canvas.width, canvas.height);
+      }
 
       const inputTensor = tf.browser.fromPixels(canvas);
       const predictions = await model.estimateFaces(inputTensor, false);
