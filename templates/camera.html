@@ -225,13 +225,15 @@
 
       // Valida qualidade
       if (isImageBlurry(src)) {
-        alert('A imagem está borrada. Por favor, ajuste a câmera e tente novamente.');
+        alert('A imagem está borrada ou escura. Por favor, busque um local mais iluminado e tente novamente.');
         src.delete();
+        positionTimers[position] = 0;
         return false;
       }
       if (isImageTooDark(src)) {
         alert('A imagem está muito escura. Por favor, ajuste a iluminação e tente novamente.');
         src.delete();
+        positionTimers[position] = 0;
         return false;
       }
 
@@ -305,7 +307,7 @@
       await setupCamera();
       video.play();
       model = await blazeface.load();
-      requestAnimationFrame(processFrame);
+      animationFrameId = requestAnimationFrame(processFrame);
       removeEmbeddings();
     }
 
@@ -419,6 +421,7 @@
                 if (elapsed >= HOLD_DURATION && !lastCaptured[pos]) {
                   console.log(`Capturando ${pos}...`);
                   if (captureAndSend(pos, [x1, y1, x2, y2])) {
+                    console.log(`Foto ${pos} capturada e enviada!`);
 
                     lastCaptured[pos] = true; // Marca que já capturou
 
@@ -434,7 +437,8 @@
                     thumbElement.src = photoDataUrl;
                     thumbElement.style.display = 'block';
                   } else {
-                    positionTimers[pos] = now; // Inicia o timer novamente
+                    positionTimers[pos] = 0; // Inicia o timer novamente
+                    console.log(`Erro ao capturar ${pos}. Reiniciando timer.`);
                   }
                 }
               }
@@ -445,7 +449,7 @@
         });
       }
 
-      requestAnimationFrame(processFrame);
+      animationFrameId = requestAnimationFrame(processFrame);
     }
 
     const retomarBtn = document.getElementById('retomar-btn');
@@ -473,6 +477,7 @@
 
       document.getElementById('video-container').style.display = 'none';
       console.log("Processo finalizado com 6 imagens!");
+      window.location.href = "https://portal.cantinasemfila.com.br/admin/cantinaSF/student/";
     });
 
 
